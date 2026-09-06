@@ -177,8 +177,7 @@ local function redwood()
 				vector[2] * step +
 				(vector[1] ~= 0 and wave or 0)
 
-			-- Las raíces descienden hacia el exterior.
-			-- Así no quedan elevándose ni flotando.
+			-- Las raíces bajan hacia el exterior.
 			local y = math.max(
 				1,
 				4 - math.floor(step / 4)
@@ -569,10 +568,10 @@ local function register_tree(
 
 		place_on = place_on,
 
-		-- Mantiene los árboles alejados entre sí.
+		-- Las celdas grandes mantienen separados los árboles.
 		sidelen = 320,
 
-		-- Pocos árboles, pero no solamente uno por bioma.
+		-- Pocos árboles, pero más fáciles de encontrar.
 		fill_ratio = ratio,
 
 		biomes = biomes,
@@ -605,7 +604,7 @@ core.register_on_mods_loaded(function()
 			"grassland"
 		},
 
-		0.000012,
+		0.000020,
 		redwood()
 	)
 
@@ -622,7 +621,7 @@ core.register_on_mods_loaded(function()
 			"savanna"
 		},
 
-		0.000010,
+		0.000015,
 		baobab()
 	)
 
@@ -640,7 +639,7 @@ core.register_on_mods_loaded(function()
 			"sandstone_desert"
 		},
 
-		0.000008,
+		0.000012,
 		cactus()
 	)
 
@@ -659,7 +658,7 @@ core.register_on_mods_loaded(function()
 			"snowy_grassland"
 		},
 
-		0.000008,
+		0.000012,
 		crystal_tree()
 	)
 
