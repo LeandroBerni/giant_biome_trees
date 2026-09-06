@@ -128,22 +128,57 @@ core.register_node(MOD_NAME .. ":giant_cactus_trunk", {
 -- =========================================================
 
 local function redwood()
-	local width = 13
-	local height = 27
-	local depth = 13
+	-- Árbol de escala monumental: 25 x 45 x 25 bloques.
+	local width = 25
+	local height = 45
+	local depth = 25
+	local center = 13
 
 	local data, put = new_schematic(width, height, depth)
 
 	local log = "default:tree"
 	local leaves = "default:leaves"
 
-	-- Tronco principal continuo.
-	for y = 1, 19 do
+	-- Raíces grandes que salen del pie del tronco.
+	for x = 3, 11 do
+		local y = 1 + math.floor((x - 3) / 4)
+
+		put(x, y, center, log)
+		put(x, y, center + 1, log)
+	end
+
+	for x = 15, 23 do
+		local y = 1 + math.floor((23 - x) / 4)
+
+		put(x, y, center, log)
+		put(x, y, center - 1, log)
+	end
+
+	for z = 3, 11 do
+		local y = 1 + math.floor((z - 3) / 4)
+
+		put(center, y, z, log)
+		put(center + 1, y, z, log)
+	end
+
+	for z = 15, 23 do
+		local y = 1 + math.floor((23 - z) / 4)
+
+		put(center, y, z, log)
+		put(center - 1, y, z, log)
+	end
+
+	-- Tronco macizo y progresivamente más delgado.
+	for y = 1, 32 do
 		local radius
 
 		if y <= 6 then
+			radius = 4
+		elseif y <= 14 then
+			radius = 3
+		elseif y <= 23 then
 			radius = 2
-		elseif y <= 12 then
+		elseif y <= 30 then
 			radius = 1
 		else
 			radius = 0
@@ -151,55 +186,70 @@ local function redwood()
 
 		for dx = -radius, radius do
 			for dz = -radius, radius do
-				put(7 + dx, y, 7 + dz, log)
+				if dx * dx + dz * dz <= radius * radius + 1 then
+					put(
+						center + dx,
+						y,
+						center + dz,
+						log
+					)
+				end
 			end
 		end
 	end
 
-	-- Ramas conectadas al tronco.
-	for x = 3, 6 do
-		put(x, 12, 7, log)
+	-- Ramas principales largas y conectadas al tronco.
+	for x = 4, 11 do
+		put(x, 20, center, log)
+		put(x, 21, center, log)
 	end
 
-	for x = 8, 11 do
-		put(x, 15, 7, log)
+	for x = 15, 22 do
+		put(x, 23, center, log)
+		put(x, 24, center, log)
 	end
 
-	for z = 3, 6 do
-		put(7, 14, z, log)
+	for z = 4, 11 do
+		put(center, 22, z, log)
+		put(center, 23, z, log)
 	end
 
-	for z = 8, 11 do
-		put(7, 17, z, log)
+	for z = 15, 22 do
+		put(center, 25, z, log)
+		put(center, 26, z, log)
 	end
 
-	-- Copa redondeada.
-	for y = 11, height do
+	-- Copa enorme, ancha abajo y redondeada arriba.
+	for y = 18, height do
 		local radius
 
-		if y <= 17 then
+		if y <= 25 then
+			radius = 11
+		elseif y <= 32 then
+			radius = 10
+		elseif y <= 38 then
+			radius = 8
+		elseif y <= 42 then
 			radius = 5
-		elseif y <= 22 then
-			radius = 4
 		else
 			radius = 2
 		end
 
 		for dx = -radius, radius do
 			for dz = -radius, radius do
-				if dx * dx + dz * dz <= radius * radius + 1 then
-					-- No tapa completamente el tronco.
+				if dx * dx + dz * dz <= radius * radius + 2 then
+					-- Deja visible el tronco y las ramas internas.
 					if not (
-						math.abs(dx) <= 1
-						and math.abs(dz) <= 1
-						and y <= 19
+						math.abs(dx) <= 2
+						and math.abs(dz) <= 2
+						and y <= 32
 					) then
 						put(
-							7 + dx,
+							center + dx,
 							y,
-							7 + dz,
+							center + dz,
 							leaves,
-							y < 24 and 235 or 255
+							245
 						)
 					end
 				end
