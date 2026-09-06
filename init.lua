@@ -4,14 +4,14 @@
 local MOD_NAME = core.get_current_modname()
 local S = core.get_translator(MOD_NAME)
 
--- Los datos de un schematic deben estar indexados como X + Z * width +
--- Y * width * depth. Mantener esta función aquí evita los desbordamientos
--- que provocaban bloques fuera de sitio en las versiones anteriores.
+-- Los datos de un schematic usan X como eje rápido, después Y y luego Z:
+-- X + Y * width + Z * width * height. Mantener esta función aquí evita
+-- que la altura y la profundidad queden intercambiadas.
 local function new_schematic(width, height, depth)
 	local data = {}
 
 	for i = 1, width * height * depth do
-		-- prob = 0 deja el volumen vacío y no borra el terreno.
+		-- prob = 0 deja el volumen vacío: no borra el terreno al decorar.
 		data[i] = {
 			name = "air",
 			prob = 0
@@ -25,9 +25,10 @@ local function new_schematic(width, height, depth)
 			return
 		end
 
+		-- Luanti utiliza X como eje rápido, después Y y finalmente Z.
 		local index =
-			(y - 1) * width * depth +
-			(z - 1) * width +
+			(z - 1) * width * height +
+			(y - 1) * width +
 			x
 
 		data[index] = {
@@ -46,6 +47,7 @@ local function schematic(width, height, depth, data)
 			y = height,
 			z = depth
 		},
+
 		data = data,
 		yslice_prob = {}
 	}
@@ -81,6 +83,7 @@ core.register_node(MOD_NAME .. ":crystal_leaves", {
 	description = S("Giant Crystal Leaves"),
 
 	drawtype = "glasslike",
+
 	tiles = {
 		MOD_NAME .. "_crystal_leaves.png"
 	},
