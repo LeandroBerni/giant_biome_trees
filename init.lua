@@ -5,13 +5,11 @@ local MOD_NAME = core.get_current_modname()
 local S = core.get_translator(MOD_NAME)
 
 -- Los datos de un schematic usan X como eje rápido, después Y y luego Z:
--- X + Y * width + Z * width * height. Mantener esta función aquí evita
--- que la altura y la profundidad queden intercambiadas.
+-- X + Y * width + Z * width * height.
 local function new_schematic(width, height, depth)
 	local data = {}
 
 	for i = 1, width * height * depth do
-		-- prob = 0 deja el volumen vacío: no borra el terreno al decorar.
 		data[i] = {
 			name = "air",
 			prob = 0
@@ -25,7 +23,6 @@ local function new_schematic(width, height, depth)
 			return
 		end
 
-		-- Luanti utiliza X como eje rápido, después Y y finalmente Z.
 		local index =
 			(z - 1) * width * height +
 			(y - 1) * width +
@@ -47,7 +44,6 @@ local function schematic(width, height, depth, data)
 			y = height,
 			z = depth
 		},
-
 		data = data,
 		yslice_prob = {}
 	}
@@ -124,64 +120,119 @@ core.register_node(MOD_NAME .. ":giant_cactus_trunk", {
 })
 
 -- =========================================================
--- SECUOYA GIGANTE
+-- ÁRBOL MONUMENTAL
 -- =========================================================
 
 local function redwood()
-	-- Árbol de escala monumental: 25 x 45 x 25 bloques.
-	local width = 25
-	local height = 45
-	local depth = 25
-	local center = 13
+	-- Árbol de escala monumental: 45 x 62 x 45 bloques.
+	local width = 45
+	local height = 62
+	local depth = 45
+	local center = 23
 
 	local data, put = new_schematic(width, height, depth)
-
-	local log = "default:tree"
 	local leaves = "default:leaves"
 
-	-- Raíces grandes que salen del pie del tronco.
-	for x = 3, 11 do
-		local y = 1 + math.floor((x - 3) / 4)
+	-- Variación de madera para simular corteza, vetas y relieve.
+	local function bark(x, y, z)
+		local pattern = (x * 3 + y * 5 + z * 7) % 11
 
-		put(x, y, center, log)
-		put(x, y, center + 1, log)
+		if pattern == 0 or pattern == 1 then
+			return "default:jungletree"
+		elseif pattern == 2 then
+			return "default:acacia_tree"
+		end
+
+		return "default:tree"
 	end
 
-	for x = 15, 23 do
-		local y = 1 + math.floor((23 - x) / 4)
+	-- =====================================================
+	-- RAÍCES EXPUESTAS Y SERPENTEANTES
+	-- =====================================================
 
-		put(x, y, center, log)
-		put(x, y, center - 1, log)
+	local root_directions = {
+		{1, 0},
+		{-1, 0},
+		{0, 1},
+		{0, -1},
+		{1, 1},
+		{1, -1},
+		{-1, 1},
+		{-1, -1}
+	}
+
+	for direction, vector in ipairs(root_directions) do
+		for step = 2, 19 do
+			local wave =
+				math.floor(
+					math.sin(step * 1.35 + direction) * 1.5
+				)
+
+			local x =
+				center +
+				vector[1] * step +
+				(vector[2] ~= 0 and wave or 0)
+
+			local z =
+				center +
+				vector[2] * step +
+				(vector[1] ~= 0 and wave or 0)
+
+			local y = 1 + math.floor(step / 7)
+
+			local radius
+
+			if step < 7 then
+				radius = 3
+			elseif step < 13 then
+				radius = 2
+			else
+				radius = 1
+			end
+
+			for dx = -radius, radius do
+				for dz = -radius, radius do
+					if dx * dx + dz * dz <= radius * radius + 1 then
+						put(
+							x + dx,
+							y,
+							z + dz,
+							bark(x + dx, y, z + dz)
+						)
+
+						if step < 15 then
+							put(
+								x + dx,
+								y + 1,
+								z + dz,
+								bark(x + dx, y + 1, z + dz)
+							)
+						end
+					end
+				end
+			end
+		end
 	end
 
-	for z = 3, 11 do
-		local y = 1 + math.floor((z - 3) / 4)
+	-- =====================================================
+	-- TRONCO ROBUSTO Y PROGRESIVAMENTE MÁS FINO
+	-- =====================================================
 
-		put(center, y, z, log)
-		put(center + 1, y, z, log)
-	end
-
-	for z = 15, 23 do
-		local y = 1 + math.floor((23 - z) / 4)
-
-		put(center, y, z, log)
-		put(center - 1, y, z, log)
-	end
-
-	-- Tronco macizo y progresivamente más delgado.
-	for y = 1, 32 do
+	for y = 1, 39 do
 		local radius
 
-		if y <= 6 then
+		if y <= 7 then
+			radius = 6
+		elseif y <= 15 then
+			radius = 5
+		elseif y <= 24 then
 			radius = 4
-		elseif y <= 14 then
+		elseif y <= 31 then
 			radius = 3
-		elseif y <= 23 then
+		elseif y <= 36 then
 			radius = 2
-		elseif y <= 30 then
-			radius = 1
 		else
-			radius = 0
+			radius = 1
 		end
 
 		for dx = -radius, radius do
@@ -191,65 +242,103 @@ local function redwood()
 						center + dx,
 						y,
 						center + dz,
-						log
+						bark(center + dx, y, center + dz)
 					)
 				end
 			end
 		end
 	end
 
-	-- Ramas principales largas y conectadas al tronco.
-	for x = 4, 11 do
-		put(x, 20, center, log)
-		put(x, 21, center, log)
+	-- =====================================================
+	-- RAMAS PRINCIPALES
+	-- =====================================================
+
+	local branches = {
+		{1, 0, 25, 17},
+		{-1, 0, 27, 18},
+		{0, 1, 29, 18},
+		{0, -1, 31, 18},
+		{1, 1, 34, 16},
+		{-1, -1, 35, 15},
+		{1, -1, 33, 15},
+		{-1, 1, 36, 15}
+	}
+
+	for _, branch in ipairs(branches) do
+		local vx = branch[1]
+		local vz = branch[2]
+		local start_y = branch[3]
+		local length = branch[4]
+
+		for step = 1, length do
+			local x = center + vx * step
+			local z = center + vz * step
+			local y = start_y + math.floor(step / 5)
+
+			put(
+				x,
+				y,
+				z,
+				bark(x, y, z)
+			)
+
+			put(
+				x,
+				y + 1,
+				z,
+				bark(x, y + 1, z)
+			)
+		end
 	end
 
-	for x = 15, 22 do
-		put(x, 23, center, log)
-		put(x, 24, center, log)
-	end
+	-- =====================================================
+	-- COPA GRANDE, DENSA Y ORGÁNICA
+	-- =====================================================
 
-	for z = 4, 11 do
-		put(center, 22, z, log)
-		put(center, 23, z, log)
-	end
-
-	for z = 15, 22 do
-		put(center, 25, z, log)
-		put(center, 26, z, log)
-	end
-
-	-- Copa enorme, ancha abajo y redondeada arriba.
-	for y = 18, height do
+	for y = 20, height do
 		local radius
 
-		if y <= 25 then
-			radius = 11
-		elseif y <= 32 then
-			radius = 10
+		if y <= 29 then
+			radius = 16
 		elseif y <= 38 then
-			radius = 8
-		elseif y <= 42 then
-			radius = 5
+			radius = 19
+		elseif y <= 47 then
+			radius = 17
+		elseif y <= 55 then
+			radius = 12
+		elseif y <= 59 then
+			radius = 7
 		else
-			radius = 2
+			radius = 3
 		end
+
+		local offset_x =
+			math.floor(math.sin(y * 0.55) * 2)
+
+		local offset_z =
+			math.floor(math.cos(y * 0.43) * 2)
 
 		for dx = -radius, radius do
 			for dz = -radius, radius do
-				if dx * dx + dz * dz <= radius * radius + 2 then
-					-- Deja visible el tronco y las ramas internas.
+				local organic_edge =
+					math.sin((dx + y) * 0.8) +
+					math.cos((dz - y) * 0.65)
+
+				if dx * dx + dz * dz
+					<= radius * radius + organic_edge * 3 then
+
+					-- Mantiene visible parte del tronco y las ramas.
 					if not (
-						math.abs(dx) <= 2
-						and math.abs(dz) <= 2
-						and y <= 32
+						math.abs(dx) <= 3
+						and math.abs(dz) <= 3
+						and y <= 39
 					) then
 						put(
-							center + dx,
+							center + offset_x + dx,
 							y,
-							center + dz,
+							center + offset_z + dz,
 							leaves,
-							245
+							250
 						)
 					end
 				end
@@ -271,7 +360,6 @@ local function baobab()
 
 	local data, put = new_schematic(width, height, depth)
 
-	-- Tronco muy ancho.
 	for y = 1, 12 do
 		local radius
 
@@ -359,10 +447,8 @@ local function cactus()
 	local depth = 11
 
 	local data, put = new_schematic(width, height, depth)
-
 	local trunk = MOD_NAME .. ":giant_cactus_trunk"
 
-	-- Fuste principal.
 	for y = 1, height do
 		local radius
 
@@ -414,7 +500,6 @@ local function crystal_tree()
 	local log = MOD_NAME .. ":crystal_log"
 	local leaves = MOD_NAME .. ":crystal_leaves"
 
-	-- Tronco de cristal.
 	for y = 1, 16 do
 		local radius
 
@@ -431,7 +516,6 @@ local function crystal_tree()
 		end
 	end
 
-	-- Copa de cristal.
 	for y = 8, height do
 		local radius = math.min(
 			6,
@@ -485,13 +569,8 @@ local function register_tree(
 		deco_type = "schematic",
 
 		place_on = place_on,
-
-		-- Celda de comprobación relativamente grande.
 		sidelen = 80,
-
-		-- Valores bajos para que aparezcan pocos por bioma.
 		fill_ratio = ratio,
-
 		biomes = biomes,
 
 		y_min = min_y or 1,
@@ -505,7 +584,6 @@ local function register_tree(
 end
 
 core.register_on_mods_loaded(function()
-	-- Bosques y praderas.
 	register_tree(
 		"giant_redwood",
 
@@ -526,7 +604,6 @@ core.register_on_mods_loaded(function()
 		redwood()
 	)
 
-	-- Sabana.
 	register_tree(
 		"giant_baobab",
 
@@ -543,7 +620,6 @@ core.register_on_mods_loaded(function()
 		baobab()
 	)
 
-	-- Desierto.
 	register_tree(
 		"giant_cactus",
 
@@ -561,7 +637,6 @@ core.register_on_mods_loaded(function()
 		cactus()
 	)
 
-	-- Tundra y zonas nevadas.
 	register_tree(
 		"giant_crystal_tree",
 
