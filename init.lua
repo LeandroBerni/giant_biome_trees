@@ -177,7 +177,12 @@ local function redwood()
 				vector[2] * step +
 				(vector[1] ~= 0 and wave or 0)
 
-			local y = 1 + math.floor(step / 7)
+			-- Las raíces descienden hacia el exterior.
+			-- Así no quedan elevándose ni flotando.
+			local y = math.max(
+				1,
+				4 - math.floor(step / 4)
+			)
 
 			local radius
 
@@ -199,12 +204,12 @@ local function redwood()
 							bark(x + dx, y, z + dz)
 						)
 
-						if step < 15 then
+						if step < 15 and y > 1 then
 							put(
 								x + dx,
-								y + 1,
+								y - 1,
 								z + dz,
-								bark(x + dx, y + 1, z + dz)
+								bark(x + dx, y - 1, z + dz)
 							)
 						end
 					end
@@ -564,7 +569,7 @@ local function register_tree(
 
 		place_on = place_on,
 
-		-- Áreas grandes para mantener distancia entre los árboles.
+		-- Mantiene los árboles alejados entre sí.
 		sidelen = 320,
 
 		-- Pocos árboles, pero no solamente uno por bioma.
