@@ -4,7 +4,7 @@
 local MOD_NAME = core.get_current_modname()
 local S = core.get_translator(MOD_NAME)
 
--- Índice correcto de schematic:
+-- Índice correcto del schematic:
 -- X + Y * width + Z * width * height
 local function new_schematic(width, height, depth)
 	local data = {}
@@ -124,9 +124,6 @@ core.register_node(MOD_NAME .. ":giant_cactus_trunk", {
 -- =========================================================
 
 local function redwood()
-	-- Ancho: 45 bloques.
-	-- Alto: 62 bloques.
-	-- Profundidad: 45 bloques.
 	local width = 45
 	local height = 62
 	local depth = 45
@@ -294,7 +291,7 @@ local function redwood()
 	end
 
 	-- =====================================================
-	-- COPA DENSA, GLOBOSA Y ORGÁNICA
+	-- COPA DENSA Y ORGÁNICA
 	-- =====================================================
 
 	for y = 20, height do
@@ -329,7 +326,6 @@ local function redwood()
 				if dx * dx + dz * dz
 					<= radius * radius + organic_edge * 3 then
 
-					-- Mantiene visible el tronco interior.
 					if not (
 						math.abs(dx) <= 3
 						and math.abs(dz) <= 3
@@ -352,7 +348,7 @@ local function redwood()
 end
 
 -- =========================================================
--- BAOBAB
+-- BAOBAB GIGANTE
 -- =========================================================
 
 local function baobab()
@@ -387,7 +383,6 @@ local function baobab()
 		end
 	end
 
-	-- Ramas inferiores.
 	for x = 3, 7 do
 		put(x, 11, 8, "default:acacia_tree")
 	end
@@ -404,7 +399,6 @@ local function baobab()
 		put(8, 11, z, "default:acacia_tree")
 	end
 
-	-- Copa tipo sombrilla.
 	for y = 11, 16 do
 		local radius
 
@@ -467,7 +461,6 @@ local function cactus()
 		end
 	end
 
-	-- Brazo izquierdo.
 	for x = 3, 5 do
 		put(x, 10, 6, trunk)
 	end
@@ -476,7 +469,6 @@ local function cactus()
 		put(3, y, 6, trunk)
 	end
 
-	-- Brazo derecho.
 	for x = 7, 9 do
 		put(x, 13, 6, trunk)
 	end
@@ -571,8 +563,13 @@ local function register_tree(
 		deco_type = "schematic",
 
 		place_on = place_on,
-		sidelen = 80,
+
+		-- Áreas grandes para mantener distancia entre los árboles.
+		sidelen = 320,
+
+		-- Pocos árboles, pero no solamente uno por bioma.
 		fill_ratio = ratio,
+
 		biomes = biomes,
 
 		y_min = min_y or 1,
@@ -586,7 +583,7 @@ local function register_tree(
 end
 
 core.register_on_mods_loaded(function()
-	-- Bosques y praderas.
+	-- Bosques, taiga y praderas.
 	register_tree(
 		"giant_redwood",
 
@@ -603,7 +600,7 @@ core.register_on_mods_loaded(function()
 			"grassland"
 		},
 
-		0.000060,
+		0.000012,
 		redwood()
 	)
 
@@ -620,7 +617,7 @@ core.register_on_mods_loaded(function()
 			"savanna"
 		},
 
-		0.000050,
+		0.000010,
 		baobab()
 	)
 
@@ -638,7 +635,7 @@ core.register_on_mods_loaded(function()
 			"sandstone_desert"
 		},
 
-		0.000040,
+		0.000008,
 		cactus()
 	)
 
@@ -657,7 +654,7 @@ core.register_on_mods_loaded(function()
 			"snowy_grassland"
 		},
 
-		0.000040,
+		0.000008,
 		crystal_tree()
 	)
 
