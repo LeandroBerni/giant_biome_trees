@@ -1,11 +1,11 @@
 -- Giant Biome Trees
--- Estructuras grandes, válidas y muy poco frecuentes para el mapgen de Luanti.
+-- Árboles gigantes, orgánicos y poco frecuentes para Luanti.
 
 local MOD_NAME = core.get_current_modname()
 local S = core.get_translator(MOD_NAME)
 
--- Los datos de un schematic usan X como eje rápido, después Y y luego Z:
--- X + Y * width + Z * width * height.
+-- Índice correcto de schematic:
+-- X + Y * width + Z * width * height
 local function new_schematic(width, height, depth)
 	local data = {}
 
@@ -50,7 +50,7 @@ local function schematic(width, height, depth, data)
 end
 
 -- =========================================================
--- NODOS PROPIOS DEL MOD
+-- NODOS PROPIOS
 -- =========================================================
 
 core.register_node(MOD_NAME .. ":crystal_log", {
@@ -124,7 +124,9 @@ core.register_node(MOD_NAME .. ":giant_cactus_trunk", {
 -- =========================================================
 
 local function redwood()
-	-- Árbol de escala monumental: 45 x 62 x 45 bloques.
+	-- Ancho: 45 bloques.
+	-- Alto: 62 bloques.
+	-- Profundidad: 45 bloques.
 	local width = 45
 	local height = 62
 	local depth = 45
@@ -133,7 +135,7 @@ local function redwood()
 	local data, put = new_schematic(width, height, depth)
 	local leaves = "default:leaves"
 
-	-- Variación de madera para simular corteza, vetas y relieve.
+	-- Variación de madera para crear vetas y relieve.
 	local function bark(x, y, z)
 		local pattern = (x * 3 + y * 5 + z * 7) % 11
 
@@ -215,7 +217,7 @@ local function redwood()
 	end
 
 	-- =====================================================
-	-- TRONCO ROBUSTO Y PROGRESIVAMENTE MÁS FINO
+	-- TRONCO ROBUSTO Y AFINADO
 	-- =====================================================
 
 	for y = 1, 39 do
@@ -292,7 +294,7 @@ local function redwood()
 	end
 
 	-- =====================================================
-	-- COPA GRANDE, DENSA Y ORGÁNICA
+	-- COPA DENSA, GLOBOSA Y ORGÁNICA
 	-- =====================================================
 
 	for y = 20, height do
@@ -327,7 +329,7 @@ local function redwood()
 				if dx * dx + dz * dz
 					<= radius * radius + organic_edge * 3 then
 
-					-- Mantiene visible parte del tronco y las ramas.
+					-- Mantiene visible el tronco interior.
 					if not (
 						math.abs(dx) <= 3
 						and math.abs(dz) <= 3
@@ -350,7 +352,7 @@ local function redwood()
 end
 
 -- =========================================================
--- BAOBAB GIGANTE
+-- BAOBAB
 -- =========================================================
 
 local function baobab()
@@ -584,6 +586,7 @@ local function register_tree(
 end
 
 core.register_on_mods_loaded(function()
+	-- Bosques y praderas.
 	register_tree(
 		"giant_redwood",
 
@@ -600,10 +603,11 @@ core.register_on_mods_loaded(function()
 			"grassland"
 		},
 
-		0.000012,
+		0.000060,
 		redwood()
 	)
 
+	-- Sabana.
 	register_tree(
 		"giant_baobab",
 
@@ -616,10 +620,11 @@ core.register_on_mods_loaded(function()
 			"savanna"
 		},
 
-		0.000010,
+		0.000050,
 		baobab()
 	)
 
+	-- Desierto.
 	register_tree(
 		"giant_cactus",
 
@@ -633,10 +638,11 @@ core.register_on_mods_loaded(function()
 			"sandstone_desert"
 		},
 
-		0.000008,
+		0.000040,
 		cactus()
 	)
 
+	-- Tundra y zonas nevadas.
 	register_tree(
 		"giant_crystal_tree",
 
@@ -651,7 +657,7 @@ core.register_on_mods_loaded(function()
 			"snowy_grassland"
 		},
 
-		0.000008,
+		0.000040,
 		crystal_tree()
 	)
 
